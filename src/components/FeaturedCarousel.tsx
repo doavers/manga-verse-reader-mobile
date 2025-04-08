@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Manga } from '../types/manga';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 
 interface FeaturedCarouselProps {
   mangas: Manga[];
@@ -12,15 +12,22 @@ interface FeaturedCarouselProps {
 const FeaturedCarousel = ({ mangas }: FeaturedCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   const nextSlide = useCallback(() => {
     setDirection(1);
     setCurrentIndex((prev) => (prev === mangas.length - 1 ? 0 : prev + 1));
+    setImageError(false); // Reset image error state when changing slides
   }, [mangas.length]);
 
   const prevSlide = useCallback(() => {
     setDirection(-1);
     setCurrentIndex((prev) => (prev === 0 ? mangas.length - 1 : prev - 1));
+    setImageError(false); // Reset image error state when changing slides
   }, [mangas.length]);
 
   useEffect(() => {
@@ -61,11 +68,18 @@ const FeaturedCarousel = ({ mangas }: FeaturedCarouselProps) => {
           className="carousel-slide"
         >
           <Link to={`/manga/${mangas[currentIndex].id}`}>
-            <img
-              src={mangas[currentIndex].cover}
-              alt={mangas[currentIndex].title}
-              className="w-full h-full object-cover"
-            />
+            {!imageError ? (
+              <img
+                src={mangas[currentIndex].cover}
+                alt={mangas[currentIndex].title}
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+              />
+            ) : (
+              <div className="w-full h-full bg-manga-dark/50 flex items-center justify-center">
+                <ImageOff className="text-manga-accent opacity-50" size={48} />
+              </div>
+            )}
             <div className="carousel-content">
               <h2 className="text-2xl font-bold">{mangas[currentIndex].title}</h2>
               <p className="text-sm opacity-80 mt-1 line-clamp-2">{mangas[currentIndex].description}</p>
@@ -107,6 +121,7 @@ const FeaturedCarousel = ({ mangas }: FeaturedCarouselProps) => {
             onClick={() => {
               setDirection(i > currentIndex ? 1 : -1);
               setCurrentIndex(i);
+              setImageError(false); // Reset image error state when manually changing slides
             }}
             className={`w-2 h-2 rounded-full ${
               i === currentIndex ? 'bg-white' : 'bg-white/50'

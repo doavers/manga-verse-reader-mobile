@@ -1,14 +1,24 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getMangaById, getChaptersByMangaId } from '../services/mangaService';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ImageOff } from 'lucide-react';
 
 const MangaDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const mangaId = Number(id);
+  const [coverImageError, setCoverImageError] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  const handleCoverImageError = () => {
+    setCoverImageError(true);
+  };
+
+  const handleThumbnailError = () => {
+    setThumbnailError(true);
+  };
 
   const { data: manga, isLoading: isLoadingManga } = useQuery({
     queryKey: ['manga', mangaId],
@@ -55,11 +65,18 @@ const MangaDetailPage = () => {
       {/* Header with cover image */}
       <div className="relative h-72">
         <div className="absolute inset-0">
-          <img 
-            src={manga.cover} 
-            alt={manga.title} 
-            className="w-full h-full object-cover"
-          />
+          {!coverImageError ? (
+            <img 
+              src={manga.cover} 
+              alt={manga.title} 
+              className="w-full h-full object-cover"
+              onError={handleCoverImageError}
+            />
+          ) : (
+            <div className="w-full h-full bg-manga-dark/50 flex items-center justify-center">
+              <ImageOff className="text-manga-accent opacity-50" size={48} />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
         </div>
         
@@ -74,11 +91,18 @@ const MangaDetailPage = () => {
         
         <div className="absolute bottom-0 left-0 w-full p-4 flex">
           <div className="w-28 h-40 overflow-hidden rounded-lg shadow-lg">
-            <img 
-              src={manga.cover} 
-              alt={manga.title} 
-              className="w-full h-full object-cover"
-            />
+            {!thumbnailError ? (
+              <img 
+                src={manga.cover} 
+                alt={manga.title} 
+                className="w-full h-full object-cover"
+                onError={handleThumbnailError}
+              />
+            ) : (
+              <div className="w-full h-full bg-manga-dark/50 flex items-center justify-center">
+                <ImageOff className="text-manga-accent opacity-50" size={24} />
+              </div>
+            )}
           </div>
           
           <div className="ml-4 flex flex-col justify-end">
